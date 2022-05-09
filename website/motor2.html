@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="assets/favicon.ico" sizes="16x16">
+    <link rel="stylesheet" href="assets/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/toastr.min.css">
+
+    <title>Motor Monitor</title>
+  </head>
+  <body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand" href="#">Motor Monitoring System</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            
+                <div class="collapse navbar-collapse" id="navbarColor01">
+                    <ul class="navbar-nav mr-auto">
+                    <li class="nav-item ">
+                        <a class="nav-link" href="main.html">Motor 1 </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="motor2.html">Motor 2  <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="motor3.html">Motor 3</a>
+                    </li>
+                    </ul>
+                </div>
+                </nav>
+    </header>
+
+    <main role="main">
+
+        <section class="jumbotron text-center" style="padding:5px;">
+			<div class="container">
+				<h1 class="jumbotron-heading">Data</h1>
+				<p class="lead text-muted">Temperature, Vibration & Current.</p>
+			   
+			</div>
+        </section>
+
+        <div class="album py-5 bg-light">
+			
+        <div class="container">
+		<div id="chartHumidityContainer"></div>	
+            <div class="row" id="table-row">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Vibration</th>
+                            <th scope="col">Temperature</th>
+                            <th scope="col">Current</th>
+                            <th scope="col">Date Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+        </div>
+
+    </main>
+	
+    <footer class="text-muted">
+        <div class="container">
+            <p class="float-right">
+            <a href="#">Back to Top</a>
+            </p>
+        </div>
+    </footer>
+	
+    <script src="assets/jquery-3.3.1.min.js"></script>
+    <script src="assets/popper.min.js"></script>
+    <script src="assets/bootstrap.min.js"></script>
+    <script src="assets/highcharts.js"></script>
+
+    <script>
+        function displayEmptyTable(){
+            $('table').hide();
+            $('#table-row').html('<div class="container">No data present.</div>');
+        }
+
+
+        function loadChart(Vibration, Temperature){
+
+            Highcharts.chart('chartHumidityContainer', {
+                title: {
+                    text: 'Motor 2'
+                },
+
+                xAxis: {
+                    title: {
+                        text: 'DateTime'
+                    },
+                    type: 'datetime'
+                },
+
+                yAxis: {
+                    title: {
+                        text: 'Values'
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle'
+                },
+
+                plotOptions: {
+                    series: {
+                        label: {
+                            connectorAllowed: false
+                        }
+                    }
+                },
+
+                series: [{
+                    name: 'Vibration',
+                    data: Vibration
+                }, {
+                    name: 'Temperature',
+                    data: Temperature
+                }],
+
+                responsive: {
+                    rules: [{
+                        condition: {
+                            maxWidth: 500
+                        },
+                        chartOptions: {
+                            legend: {
+                                layout: 'horizontal',
+                                align: 'center',
+                                verticalAlign: 'bottom'
+                            }
+                        }
+                    }]
+                }
+            });
+        }
+		$( document ).ready(function() {
+            $.ajax({
+                url: "api/getMotor2.php",
+                type: "GET",
+				dataType:"json",
+                success: function(result){
+                    var arr = JSON.parse(JSON.stringify(result));
+                    var str = "";
+                    var Vibration=[];
+					var Temperature=[];
+                    if(arr.length > 0){
+                        for (var i=0;i<arr.length;i++) {
+                            var obj = arr[i];
+                            var curr_date = new Date(obj['DateTime']);
+                            Vibration.push({x: curr_date, y: parseInt(obj["Vibration2"])});
+                            Temperature.push({x: curr_date, y: parseInt(obj["Temperature2"])});
+                         
+                        
+                            str = str + "<tr><th scope=\"row\">"+obj["ID"]+"</th><td>"+obj["Vibration2"]+"</td><td>"+obj["Temperature2"]+"</td><td>"+obj["Current2"]+"</td><td>"+obj["DateTime"]+"</td></tr>";
+                        }
+                        loadChart(Vibration, Temperature);
+                        $('tbody').append(str);
+                    }else{
+                        displayEmptyTable();
+                    }
+                }
+            });
+        });
+       
+    </script>
+  </body>
+</html>
